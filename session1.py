@@ -3,49 +3,21 @@ import numpy as np
 import cPickle
 import time
 from sklearn.neighbors import KNeighborsClassifier
-
+from features.feature_extractors import SIFT_features
 start = time.time()
 # read the train and test files
 
-train_images_filenames = cPickle.load(open('./train_images_filenames.dat','r'))
-test_images_filenames = cPickle.load(open('./test_images_filenames.dat','r'))
-train_labels = cPickle.load(open('./train_labels.dat','r'))
-test_labels = cPickle.load(open('./test_labels.dat','r'))
+train_images_filenames = cPickle.load(open('./dataset/train_images_filenames.dat', 'r'))
+test_images_filenames = cPickle.load(open('./dataset/test_images_filenames.dat', 'r'))
+train_labels = cPickle.load(open('./dataset/train_labels.dat', 'r'))
+test_labels = cPickle.load(open('./dataset/test_labels.dat', 'r'))
 
 print 'Loaded '+str(len(train_images_filenames))+' training images filenames with classes '+str(set(train_labels))
 print 'Loaded '+str(len(test_images_filenames))+' testing images filenames with classes '+str(set(test_labels))
 
-# create the SIFT detector object
-
 SIFTdetector = cv2.SIFT(nfeatures=100)
 
-# read the just 30 train images per class
-# extract SIFT keypoints and descriptors
-# store descriptors in a python list of numpy arrays
-
-Train_descriptors = []
-Train_label_per_descriptor = []
-
-for i in range(len(train_images_filenames)):
-	filename=train_images_filenames[i]
-	if Train_label_per_descriptor.count(train_labels[i])<30:
-		print 'Reading image '+filename
-		ima=cv2.imread(filename)
-		gray=cv2.cvtColor(ima,cv2.COLOR_BGR2GRAY)
-		kpt,des=SIFTdetector.detectAndCompute(gray,None)
-		Train_descriptors.append(des)
-		Train_label_per_descriptor.append(train_labels[i])
-		print str(len(kpt))+' extracted keypoints and descriptors'
-
-# Transform everything to numpy arrays
-
-D=Train_descriptors[0]
-L=np.array([Train_label_per_descriptor[0]]*Train_descriptors[0].shape[0])
-
-for i in range(1,len(Train_descriptors)):
-	D=np.vstack((D,Train_descriptors[i]))
-	L=np.hstack((L,np.array([Train_label_per_descriptor[i]]*Train_descriptors[i].shape[0])))
-
+D, L = SIFT_features(SIFTdetector, train_images_filenames, train_labels)
 
 # Train a k-nn classifier
 

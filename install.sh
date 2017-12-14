@@ -31,4 +31,4 @@ pkg-config --modversion opencv
 
 sudo python get-pip.py
 pip install -U scikit-learn
-
+pip install h5py
