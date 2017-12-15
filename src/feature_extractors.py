@@ -5,7 +5,7 @@ import os
 
 def SIFT_features(SIFTdetector, train_images_filenames, train_labels):
 
-    if not os.path.exists('./features/descriptors/sift.h5'):
+    if not os.path.exists('./src/descriptors/sift.h5'):
         # read the just 30 train images per class
         # extract SIFT keypoints and descriptors
         # store descriptors in a python list of numpy arrays
@@ -31,12 +31,12 @@ def SIFT_features(SIFTdetector, train_images_filenames, train_labels):
         for i in range(1, len(Train_descriptors)):
             D = np.vstack((D, Train_descriptors[i]))
             L = np.hstack((L, np.array([Train_label_per_descriptor[i]] * Train_descriptors[i].shape[0])))
-        f = h5py.File('./features/descriptors/sift.h5', 'w')
+        f = h5py.File('./src/descriptors/sift.h5', 'w')
         f.create_dataset('D', data=D)
         f.create_dataset('L', data=L)
         f.close()
     else:
-        sift_descriptor = h5py.File('./features/descriptors/sift.h5', 'r')
+        sift_descriptor = h5py.File('./src/descriptors/sift.h5', 'r')
         D = np.array(sift_descriptor['D'])
         L = np.array(sift_descriptor['L'])
         sift_descriptor.close()
