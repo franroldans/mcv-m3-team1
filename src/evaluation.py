@@ -20,11 +20,9 @@ def plot_confusion_matrix(predictions, labels, experiment_name, print_matrix=Fal
     fig = plt.figure()
     plt.matshow(cnf_matrix)
     plt.colorbar()
-    plt.ylabel('True Label')
-    plt.xlabel('Predicated Label')
+    plt.xlabel('Predictions')
     tick_marks = np.arange(len(classes))
     plt.xticks(tick_marks, classes, rotation=90)
     plt.yticks(tick_marks, classes)
     plt.savefig('confusion_matrix_' + experiment_name + '.jpg')
     return cnf_matrix
-

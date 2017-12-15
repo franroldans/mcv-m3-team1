@@ -4,14 +4,18 @@ import cPickle
 import os
 import sys
 import time
+
 from src.evaluation import plot_confusion_matrix
-from src.feature_extractors import SIFT_features
+from src.feature_extractors import SIFT_features, n_SIFT_features, SURF_features
 from src.train import train_knn
 
 start = time.time()
 #Variables:
-extractor = 'sift'
+extractor = 'surf' #can be either sift or n_sift
 classifier = 'knn'
+num_sift_descriptors = 1
+if extractor =='n_sift':
+    num_sift_descriptors = 3
 
 #Constants:
 experiment_name = extractor + '_' + classifier
@@ -26,13 +30,24 @@ print 'Loaded '+str(len(train_images_filenames))+' training images filenames wit
 print 'Loaded '+str(len(test_images_filenames))+' testing images filenames with classes '+str(set(test_labels))
 
 #Feature extractors:
+myextractor = []
 if extractor == 'sift':
-    myextractor = cv2.SIFT(nfeatures=100)
+    myextractor.append(cv2.SIFT(nfeatures=100))
+elif extractor =='n_sift':
+    for i in range(num_sift_descriptors):
+        myextractor.append(cv2.SIFT(nfeatures=100))
+elif extractor == 'surf':
+    myextractor.append(cv2.SURF(100))
 else:
     sys.exit('[ERROR]: Not a valid extractor')
 
 if not os.path.exists('./models/'+experiment_filename):
-    D, L = SIFT_features(myextractor, train_images_filenames, train_labels)
+    if extractor == 'sift':
+        D, L = SIFT_features(myextractor, train_images_filenames, train_labels)
+    elif extractor == 'n_sift':
+        D, L = n_SIFT_features(myextractor, train_images_filenames, train_labels)
+    elif extractor == 'surf':
+        D, L = SURF_features(myextractor, train_images_filenames, train_labels)
     if classifier == 'knn':
         # Train a k-nn classifier
         myclassifier = train_knn(D, L, experiment_filename)
@@ -53,8 +68,14 @@ if not os.path.exists(predictions_filename):
         filename = test_images_filenames[i]
         ima = cv2.imread(filename)
         gray = cv2.cvtColor(ima, cv2.COLOR_BGR2GRAY)
-        kpt, des = myextractor.detectAndCompute(gray, None)
-        predictions = myclassifier.predict(des)
+        keypoints = []
+        descriptors = []
+        for extr in myextractor:
+            kpt, des = extr.detectAndCompute(gray, None)
+            keypoints.append(kpt)
+            descriptors.append(des)
+        descriptors = np.vstack(descriptors)
+        predictions = myclassifier.predict(descriptors)
         values, counts = np.unique(predictions, return_counts=True)
         predictedclass = values[np.argmax(counts)]
         Y_pred.append(predictedclass)
