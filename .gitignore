@@ -108,3 +108,6 @@ venv.bak/
 # Images:
 *.jpg
 *.png
+
+#Pycharm
+*.xml
