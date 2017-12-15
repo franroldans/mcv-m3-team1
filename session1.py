@@ -5,6 +5,7 @@ import os
 import sys
 import time
 
+from sklearn.decomposition import PCA
 from src.evaluation import plot_confusion_matrix
 from src.feature_extractors import SIFT_features, n_SIFT_features, SURF_features
 from src.train import train_knn
@@ -33,21 +34,22 @@ print 'Loaded '+str(len(test_images_filenames))+' testing images filenames with 
 myextractor = []
 if extractor == 'sift':
     myextractor.append(cv2.SIFT(nfeatures=100))
+    D, L = SIFT_features(myextractor, train_images_filenames, train_labels)
 elif extractor =='n_sift':
     for i in range(num_sift_descriptors):
         myextractor.append(cv2.SIFT(nfeatures=100))
+    D, L = n_SIFT_features(myextractor, train_images_filenames, train_labels)
 elif extractor == 'surf':
     myextractor.append(cv2.SURF(100))
+    D, L = SURF_features(myextractor, train_images_filenames, train_labels)
+    #Dimensionality reduction due to high computation using PCA:
+    pca = PCA(n_components=18)
+    pca.fit(D)
+    D = pca.transform(D)
 else:
     sys.exit('[ERROR]: Not a valid extractor')
 
 if not os.path.exists('./models/'+experiment_filename):
-    if extractor == 'sift':
-        D, L = SIFT_features(myextractor, train_images_filenames, train_labels)
-    elif extractor == 'n_sift':
-        D, L = n_SIFT_features(myextractor, train_images_filenames, train_labels)
-    elif extractor == 'surf':
-        D, L = SURF_features(myextractor, train_images_filenames, train_labels)
     if classifier == 'knn':
         # Train a k-nn classifier
         myclassifier = train_knn(D, L, experiment_filename)
@@ -75,6 +77,8 @@ if not os.path.exists(predictions_filename):
             keypoints.append(kpt)
             descriptors.append(des)
         descriptors = np.vstack(descriptors)
+        if extractor == 'surf':
+            descriptors = pca.transform(descriptors)
         predictions = myclassifier.predict(descriptors)
         values, counts = np.unique(predictions, return_counts=True)
         predictedclass = values[np.argmax(counts)]

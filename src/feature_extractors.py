@@ -18,7 +18,7 @@ def SIFT_features(SIFTdetector, train_images_filenames, train_labels):
                 print 'Reading image ' + filename
                 ima = cv2.imread(filename)
                 gray = cv2.cvtColor(ima, cv2.COLOR_BGR2GRAY)
-                kpt, des = SIFTdetector.detectAndCompute(gray, None)
+                kpt, des = SIFTdetector[0].detectAndCompute(gray, None)
                 Train_descriptors.append(des)
                 Train_label_per_descriptor.append(train_labels[i])
                 print str(len(kpt)) + ' extracted keypoints and descriptors'
@@ -98,7 +98,7 @@ def SURF_features(SURFdetector, train_images_filenames, train_labels):
                 print 'Reading image ' + filename
                 ima = cv2.imread(filename)
                 gray = cv2.cvtColor(ima, cv2.COLOR_BGR2GRAY)
-                kpt, des = SURFdetector.detectAndCompute(gray, None)
+                kpt, des = SURFdetector[0].detectAndCompute(gray, None)
                 Train_descriptors.append(des)
                 Train_label_per_descriptor.append(train_labels[i])
                 print str(len(kpt)) + ' extracted keypoints and descriptors'
