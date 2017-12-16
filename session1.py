@@ -8,13 +8,14 @@ import time
 from sklearn.decomposition import PCA
 from src.evaluation import plot_confusion_matrix
 from src.feature_extractors import SIFT_features, n_SIFT_features, SURF_features
-from src.train import train_knn
-
+from src.train import train_knn, train_random_forest, train_gaussian_naive_bayes, train_svm, train_logistic_regression
+from src.predict import predict_logistic_regression
 start = time.time()
 #Variables:
-extractor = 'surf' #can be either sift or n_sift
-classifier = 'knn'
+extractor = 'sift' # sift, n_sift or surf
+classifier = 'lr' # knn, rf, gnb, svm or lr
 num_sift_descriptors = 1
+reduce_dim = True
 if extractor =='n_sift':
     num_sift_descriptors = 3
 
@@ -40,19 +41,28 @@ elif extractor =='n_sift':
         myextractor.append(cv2.SIFT(nfeatures=100))
     D, L = n_SIFT_features(myextractor, train_images_filenames, train_labels)
 elif extractor == 'surf':
-    myextractor.append(cv2.SURF(100))
+    myextractor.append(cv2.SURF(300))
     D, L = SURF_features(myextractor, train_images_filenames, train_labels)
-    #Dimensionality reduction due to high computation using PCA:
-    pca = PCA(n_components=18)
-    pca.fit(D)
-    D = pca.transform(D)
 else:
     sys.exit('[ERROR]: Not a valid extractor')
 
+if reduce_dim:
+    #Dimensionality reduction using PCA due to high computation:
+    pca = PCA(n_components=25)
+    pca.fit(D)
+    D = pca.transform(D)
+
 if not os.path.exists('./models/'+experiment_filename):
     if classifier == 'knn':
-        # Train a k-nn classifier
         myclassifier = train_knn(D, L, experiment_filename)
+    elif classifier == 'rf':
+        myclassifier = train_random_forest(D, L, experiment_filename)
+    elif classifier == 'gnb':
+        myclassifier = train_gaussian_naive_bayes(D, L, experiment_filename)
+    elif classifier == 'svm':
+        myclassifier = train_svm(D, L, experiment_filename)
+    elif classifier == 'lr':
+        myclassifier = train_logistic_regression(D, L)
     else:
         sys.exit('[ERROR]: Not a valid classifier')
 else:
@@ -77,13 +87,16 @@ if not os.path.exists(predictions_filename):
             keypoints.append(kpt)
             descriptors.append(des)
         descriptors = np.vstack(descriptors)
-        if extractor == 'surf':
+        if reduce_dim:
             descriptors = pca.transform(descriptors)
-        predictions = myclassifier.predict(descriptors)
+        if classifier != 'lr':
+            predictions = myclassifier.predict(descriptors)
+        else:
+            predictions = predict_logistic_regression(myclassifier, descriptors)
         values, counts = np.unique(predictions, return_counts=True)
         predictedclass = values[np.argmax(counts)]
         Y_pred.append(predictedclass)
-        print 'image '+filename+' was from class '+test_labels[i]+' and was predicted '+predictedclass
+        print 'image '+filename+' was from class '+test_labels[i]+' and was predicted '+ str(predictedclass)
         numtestimages += 1
         if predictedclass == test_labels[i]:
             numcorrect += 1
