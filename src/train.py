@@ -56,7 +56,7 @@ def train_svm(descriptors, labels, experiment_filename, save_model=False):
     return mysvm
 
 
-def train_logistic_regression(descriptors, labels, learning_rate=1e-3, L2reg=0.00, num_steps=1):
+def train_logistic_regression(descriptors, labels, learning_rate=1e-3, L2reg=0.00, num_steps=300000):
 
     def sigmoid(scores):
         return 1 / (1 + np.exp(-scores))
