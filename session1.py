@@ -96,7 +96,6 @@ if not os.path.exists(predictions_filename):
         values, counts = np.unique(predictions, return_counts=True)
         predictedclass = values[np.argmax(counts)]
         Y_pred.append(predictedclass)
-        Y_pred.append(predictedclass)
         print 'image '+filename+' was from class '+test_labels[i]+' and was predicted '+ str(predictedclass)
         numtestimages += 1
         if predictedclass == test_labels[i]:
