@@ -24,7 +24,6 @@ def SIFT_features(SIFTdetector, train_images_filenames, train_labels):
                 print str(len(kpt)) + ' extracted keypoints and descriptors'
 
         # Transform everything to numpy arrays
-
         D = Train_descriptors[0]
         L = np.array([Train_label_per_descriptor[0]] * Train_descriptors[0].shape[0])
 

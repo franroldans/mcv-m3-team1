@@ -41,7 +41,7 @@ elif extractor =='n_sift':
         myextractor.append(cv2.SIFT(nfeatures=100))
     D, L = n_SIFT_features(myextractor, train_images_filenames, train_labels)
 elif extractor == 'surf':
-    myextractor.append(cv2.SURF(300))
+    myextractor.append(cv2.SURF(100))
     D, L = SURF_features(myextractor, train_images_filenames, train_labels)
 else:
     sys.exit('[ERROR]: Not a valid extractor')
@@ -62,7 +62,7 @@ if not os.path.exists('./models/'+experiment_filename):
     elif classifier == 'svm':
         myclassifier = train_svm(D, L, experiment_filename)
     elif classifier == 'lr':
-        myclassifier = train_logistic_regression(D, L)
+        weights = train_logistic_regression(D, L)
     else:
         sys.exit('[ERROR]: Not a valid classifier')
 else:
@@ -92,9 +92,10 @@ if not os.path.exists(predictions_filename):
         if classifier != 'lr':
             predictions = myclassifier.predict(descriptors)
         else:
-            predictions = predict_logistic_regression(myclassifier, descriptors)
+            predictions = predict_logistic_regression(weights, descriptors)
         values, counts = np.unique(predictions, return_counts=True)
         predictedclass = values[np.argmax(counts)]
+        Y_pred.append(predictedclass)
         Y_pred.append(predictedclass)
         print 'image '+filename+' was from class '+test_labels[i]+' and was predicted '+ str(predictedclass)
         numtestimages += 1
@@ -110,11 +111,10 @@ else:
         print 'Predictions loaded'
     for i in range(len(test_images_filenames)):
         filename = test_images_filenames[i]
-        print 'image ' + filename + ' was from class ' + test_labels[i] + ' and was predicted ' + Y_pred[i]
+        print 'image ' + filename + ' was from class ' + test_labels[i] + ' and was predicted ' + str(Y_pred[i])
         numtestimages += 1
         if Y_pred[i] == test_labels[i]:
             numcorrect += 1
-
 print 'Final accuracy: ' + str(numcorrect*100.0/numtestimages)
 cm = plot_confusion_matrix(Y_pred, test_labels, experiment_name)
 end = time.time()

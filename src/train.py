@@ -1,18 +1,14 @@
 import cPickle
 import numpy as np
+import h5py
+import os
 from sklearn import svm
 from sklearn.neighbors import KNeighborsClassifier
 from sklearn.ensemble import RandomForestClassifier
 from sklearn.naive_bayes import GaussianNB
-from sklearn.preprocessing import StandardScaler
 
-def scale_descriptors(descriptors):
-    scaler = StandardScaler().fit(descriptors)
-    # Scale training data
-    return scaler.transform(descriptors)
 
 def train_knn(descriptors, labels, experiment_filename, save_model=False):
-    descriptors = scale_descriptors(descriptors)
     myknn = KNeighborsClassifier(n_neighbors=5, n_jobs=-1)
     print 'Fitting KNN...'
     myknn.fit(descriptors, labels)
@@ -25,7 +21,6 @@ def train_knn(descriptors, labels, experiment_filename, save_model=False):
 
 
 def train_random_forest(descriptors, labels, experiment_filename, save_model=False):
-    descriptors = scale_descriptors(descriptors)
     myrf = RandomForestClassifier(n_estimators=10)
     print 'Fitting Random Forest...'
     myrf.fit(descriptors, labels)
@@ -38,7 +33,6 @@ def train_random_forest(descriptors, labels, experiment_filename, save_model=Fal
 
 
 def train_gaussian_naive_bayes(descriptors, labels, experiment_filename, save_model=False):
-    descriptors = scale_descriptors(descriptors)
     mygnb = GaussianNB()
     print 'Fitting Gaussian Naive Bayes classifier...'
     mygnb.fit(descriptors, labels)
@@ -51,7 +45,6 @@ def train_gaussian_naive_bayes(descriptors, labels, experiment_filename, save_mo
 
 
 def train_svm(descriptors, labels, experiment_filename, save_model=False):
-    descriptors = scale_descriptors(descriptors)
     mysvm = svm.SVC(C=5)
     print 'Fitting SVM with RBF kernel...'
     mysvm.fit(descriptors, labels)
@@ -63,33 +56,43 @@ def train_svm(descriptors, labels, experiment_filename, save_model=False):
     return mysvm
 
 
-def train_logistic_regression(descriptors, labels, learning_rate=5e-5, num_steps=300000):
+def train_logistic_regression(descriptors, labels, learning_rate=1e-3, L2reg=0.00, num_steps=1):
 
     def sigmoid(scores):
         return 1 / (1 + np.exp(-scores))
 
-    def log_likelihood(features, target, w):
-        scores = np.dot(features, w)
-        ll = np.sum(target * scores - np.log(1 + np.exp(scores)))
-        return ll
-    print 'Fitting Logistic Regression Classifier...'
-    weights = np.zeros(descriptors.shape[1])
-    classes = ['Opencountry', 'coast', 'forest', 'highway', 'inside_city', 'mountain', 'street', 'tallbuilding']
-    target = [float(classes.index(label)) for label in labels]
+    def softmax(x):
+        e = np.exp(x - np.max(x))  # prevent overflow
+        if e.ndim == 1:
+            return e / np.sum(e, axis=0)
+        else:
+            return e / np.array([np.sum(e, axis=1)]).T  # ndim = 2
+    if not os.path.exists('./src/descriptors/lr_weights.h5'):
+        print 'Fitting Logistic Regression Classifier...'
+        classes = ['Opencountry', 'coast', 'forest', 'highway', 'inside_city', 'mountain', 'street', 'tallbuilding']
+        target = np.zeros((len(labels), len(classes)))
+        #One hot encoding for the different labels:
+        for idx, label in enumerate(labels):
+            target[idx, classes.index(label)] = 1
+        x = descriptors
+        y = np.array(target)
+        W = np.zeros((descriptors.shape[1], len(classes)),  dtype=np.float64) #shape=(length of features, number of classes)
 
-    for step in xrange(num_steps):
-        scores = np.dot(descriptors, weights)
-        predictions = sigmoid(scores)
-        # Update weights with gradient
-        output_error_signal = target - predictions
-        gradient = np.dot(descriptors.T, output_error_signal)
-        weights += learning_rate * gradient
-
-        # Print log-likelihood every so often
-        if step % 10000 == 0:
-            print log_likelihood(descriptors, target, weights)
-    print 'Done!'
-    return weights
+        for step in range(num_steps):
+            p_y_given_x = softmax(np.dot(x, W))
+            d_y = y - p_y_given_x
+            W += learning_rate * np.dot(x.T, d_y) - learning_rate * L2reg * W
+        print 'Done!'
+        f = h5py.File('./src/descriptors/lr_weights.h5', 'w')
+        f.create_dataset('W', data=W)
+        f.close()
+    else:
+        print 'Loading Logistic regression weights'
+        f = h5py.File('./src/descriptors/lr_weights.h5', 'r')
+        W = np.array(f['W'])
+        f.close()
+        print'Finish loading weights'
+    return W
 
 
 
