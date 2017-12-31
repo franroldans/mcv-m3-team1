@@ -11,6 +11,7 @@ from sklearn import cluster
 from src.feature_extractors2 import SIFT_features,  SURF_features, descriptors_List2Array
 from src.image_representation import BoW_hardAssignment, test_BoW_representation
 from src.train import train_svm
+from src.evaluation import plot_confusion_matrix
 
 start = time.time()
 
@@ -37,17 +38,11 @@ print 'Loaded '+str(len(train_images_filenames))+' training images filenames wit
 print 'Loaded '+str(len(test_images_filenames))+' testing images filenames with classes ',set(test_labels)
 
 
-#Feature extractors:
-if extractor == 'sift':
-    #myextractor=(cv2.SIFT(nfeatures=300))
-    myextractor=(cv2.xfeatures2d.SIFT_create(nfeatures = n_features))
-    Train_descriptors, Train_label_per_descriptor = SIFT_features(myextractor, train_images_filenames, train_labels)
-elif extractor == 'surf':
-    #myextractor=(cv2.SURF(300))
-    myextractor=(cv2.xfeatures2d.SURF_create(n_features))
-    Train_descriptors, Train_label_per_descriptor = SURF_features(myextractor, train_images_filenames, train_labels)
-else:
-    sys.exit('[ERROR]: Not a valid extractor')
+#Feature extraction:
+#myextractor=(cv2.SIFT(nfeatures=300))
+myextractor=(cv2.xfeatures2d.SIFT_create(nfeatures = n_features))
+Train_descriptors_array = SIFT_features(myextractor, train_images_filenames, train_labels)
+Train_descriptors=list(Train_descriptors_array)
 D=descriptors_List2Array(Train_descriptors)
 
 #Getting BoVW with kMeans(Hard Assignment)
@@ -67,6 +62,9 @@ accuracy = 100*clf.score(stdSlr.transform(visual_words_test), test_labels)
 end=time.time()
 print 'Done in '+str(end-init)+' secs.'
 print 'Final accuracy: ' + str(accuracy)
+
+Y_pred=clf.predict(stdSlr.transform(visual_words_test))
+cm = plot_confusion_matrix(list(Y_pred), test_labels, experiment_name)
 
 end=time.time()
 print 'Everything done in '+str(end-start)+' secs.'
