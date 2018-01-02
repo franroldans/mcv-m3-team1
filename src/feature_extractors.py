@@ -95,4 +95,4 @@ def descriptors_List2Array(descriptors):
     for i in range(len(descriptors)):
         D[startingpoint:startingpoint+len(descriptors[i])]=descriptors[i]
         startingpoint+=len(descriptors[i])
-return D
+    return D
