@@ -40,4 +40,4 @@ def test_BoW_representation(test_images_filenames, k, myextractor, codebook):
         visual_words_test[i,:]=np.bincount(words,minlength=k)
     end=time.time()
     print 'Done in '+str(end-init)+' secs.'
-return visual_words_test
+    return visual_words_test
