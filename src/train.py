@@ -2,7 +2,9 @@ import cPickle
 import numpy as np
 import h5py
 import os
+import time
 from sklearn import svm
+from sklearn.preprocessing import StandardScaler
 from sklearn.neighbors import KNeighborsClassifier
 from sklearn.ensemble import RandomForestClassifier
 from sklearn.naive_bayes import GaussianNB
@@ -44,17 +46,25 @@ def train_gaussian_naive_bayes(descriptors, labels, experiment_filename, save_mo
     return mygnb
 
 
-def train_svm(descriptors, labels, experiment_filename, save_model=False):
-    mysvm = svm.SVC(C=5)
-    print 'Fitting SVM with RBF kernel...'
-    mysvm.fit(descriptors, labels)
-    print 'Done!'
+
+def train_svm(descriptors, labels, experiment_filename, kernel_svm, C_param, gamma_param, save_model=False):
+
+    print 'Training the SVM classifier...'
+    init=time.time()
+    stdSlr = StandardScaler().fit(descriptors)
+    D_scaled = stdSlr.transform(descriptors)
+    mysvm = svm.SVC(kernel=kernel_svm, C=C_param, gamma=gamma_param).fit(D_scaled, labels)
     if save_model:
         print 'Saving SVM with RBG kernel model...'
         cPickle.dump(mysvm, open('./models/' + experiment_filename, 'w'))
         print 'Model saved!'
-    return mysvm
+    end=time.time()
+    print 'Done in '+str(end-init)+' secs.'
+    return mysvm, stdSlr
 
+
+
+return mysvm, stdSlr
 
 def train_logistic_regression(descriptors, labels, learning_rate=1e-3, L2reg=0.00, num_steps=1):
 
