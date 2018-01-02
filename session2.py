@@ -1,17 +1,13 @@
-import cv2
-import numpy as np
 import cPickle
+import numpy as np
+import h5py
 import os
-import sys
 import time
-import Tkinter
 from sklearn.preprocessing import StandardScaler
 from sklearn import svm
-from sklearn import cluster
-from src.feature_extractors2 import SIFT_features,  SURF_features, descriptors_List2Array
-from src.image_representation import BoW_hardAssignment, test_BoW_representation
-from src.train import train_svm
-from src.evaluation import plot_confusion_matrix
+from sklearn.neighbors import KNeighborsClassifier
+from sklearn.ensemble import RandomForestClassifier
+from sklearn.naive_bayes import GaussianNB
 
 start = time.time()
 
@@ -30,17 +26,21 @@ experiment_filename = experiment_name + '.p'
 predictions_filename = './predictions/' + experiment_name + '_predictions.p'
 
 # read the train and test files
-train_images_filenames = cPickle.load(open('train_images_filenames.dat','r'))
-test_images_filenames = cPickle.load(open('test_images_filenames.dat','r'))
-train_labels = cPickle.load(open('train_labels.dat','r'))
-test_labels = cPickle.load(open('test_labels.dat','r'))
+
+train_images_filenames = cPickle.load(open('./dataset/train_images_filenames.dat','r'))
+test_images_filenames = cPickle.load(open('./dataset/test_images_filenames.dat','r'))
+train_labels = cPickle.load(open('./dataset/train_labels.dat','r'))
+test_labels = cPickle.load(open('./dataset/test_labels.dat','r'))
+
 print 'Loaded '+str(len(train_images_filenames))+' training images filenames with classes ',set(train_labels)
 print 'Loaded '+str(len(test_images_filenames))+' testing images filenames with classes ',set(test_labels)
 
 
 #Feature extraction:
-#myextractor=(cv2.SIFT(nfeatures=300))
-myextractor=(cv2.xfeatures2d.SIFT_create(nfeatures = n_features))
+
+myextractor=(cv2.SIFT(nfeatures=300))
+#myextractor=(cv2.xfeatures2d.SIFT_create(nfeatures = n_features))
+
 Train_descriptors_array = SIFT_features(myextractor, train_images_filenames, train_labels)
 Train_descriptors=list(Train_descriptors_array)
 D=descriptors_List2Array(Train_descriptors)
