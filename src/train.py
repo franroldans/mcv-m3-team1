@@ -4,7 +4,9 @@ import h5py
 import os
 import time
 from sklearn.preprocessing import StandardScaler
+
 from sklearn import svm
+from sklearn.preprocessing import StandardScaler
 from sklearn.neighbors import KNeighborsClassifier
 from sklearn.ensemble import RandomForestClassifier
 from sklearn.naive_bayes import GaussianNB
@@ -57,6 +59,7 @@ def train_svm(descriptors, labels, experiment_filename, kernel_svm, C_param, gam
     D_scaled = stdSlr.transform(descriptors)
     if kernel_svm == 'precomputed':
         kernel_svm = hist_intersection_kernel
+
     mysvm = svm.SVC(kernel=kernel_svm, C=C_param, gamma=gamma_param).fit(D_scaled, labels)
     if save_model:
         print 'Saving SVM with RBG kernel model...'
@@ -65,6 +68,7 @@ def train_svm(descriptors, labels, experiment_filename, kernel_svm, C_param, gam
     end=time.time()
     print 'Done in '+str(end-init)+' secs.'
     return mysvm, stdSlr
+
 
 def train_logistic_regression(descriptors, labels, learning_rate=1e-3, L2reg=0.00, num_steps=300000):
 

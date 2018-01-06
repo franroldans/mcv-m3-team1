@@ -105,6 +105,7 @@ def BoW_hardAssignment(k, D, ids, spatial_pyramid=False, save_model=True):
             visual_words = np.array([np.bincount(words[ids == i], minlength=k) for i in
                                      range(0, ids.max() + 1)], dtype=np.float64)
             print 'Model loaded!'
+
     return words, visual_words, codebook
 
 def test_BoW_representation(test_images_filenames, k, myextractor, codebook):
@@ -163,3 +164,4 @@ def build_pyramid(prediction, descriptors_indices, k=512):
         except IndexError:
             pass
     return np.array(v_words, dtype=np.float64)
+

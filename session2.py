@@ -1,11 +1,15 @@
-import cv2
 import cPickle
+import numpy as np
+import h5py
+import os
 import time
+
 import numpy as np
 from src.feature_extractors import SIFT_features,  SURF_features, descriptors_List2Array
 from src.image_representation import BoW_hardAssignment, test_BoW_representation, spatial_pyramid_matching, build_pyramid
 from src.train import train_svm
 from src.evaluation import plot_confusion_matrix
+
 
 start = time.time()
 
@@ -25,23 +29,28 @@ experiment_filename = experiment_name + '.p'
 predictions_filename = './predictions/' + experiment_name + '_predictions.p'
 
 # read the train and test files
+
 train_images_filenames = cPickle.load(open('./dataset/train_images_filenames.dat','r'))
 test_images_filenames = cPickle.load(open('./dataset/test_images_filenames.dat','r'))
 train_labels = cPickle.load(open('./dataset/train_labels.dat','r'))
 test_labels = cPickle.load(open('./dataset/test_labels.dat','r'))
+
 print 'Loaded '+str(len(train_images_filenames))+' training images filenames with classes ',set(train_labels)
 print 'Loaded '+str(len(test_images_filenames))+' testing images filenames with classes ',set(test_labels)
 
 
 #Feature extraction:
+
 myextractor=(cv2.SIFT(nfeatures=300))
 #myextractor=(cv2.xfeatures2d.SIFT_create(nfeatures = n_features))
+
 descriptors_matrix, labels_matrix, ids_matrix = SIFT_features(myextractor, train_images_filenames, train_labels)
 D = descriptors_matrix.astype(np.uint32)
 #D = Train_descriptors_array.flatten()
 #print D.shape
 #Train_descriptors_array = np.vstack(Train_descriptors_array[:]).astype(np.float32)
 #D=descriptors_List2Array(Train_descriptors)
+
 
 
 #Getting BoVW with kMeans(Hard Assignment)

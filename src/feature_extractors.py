@@ -24,6 +24,7 @@ def SURF_features(SURFdetector, train_images_filenames, train_labels):
                 Train_label_per_descriptor.append(train_labels[i])
                 print str(len(kpt)) + ' extracted keypoints and descriptors'
         # Transform everything to numpy arrays
+
         D = Train_descriptors[0]
         L = np.array([Train_label_per_descriptor[0]] * Train_descriptors[0].shape[0])
         for i in range(1, len(Train_descriptors)):
@@ -41,6 +42,7 @@ def SURF_features(SURFdetector, train_images_filenames, train_labels):
     return D, L"""
 
 def SIFT_features(SIFTdetector, train_images_filenames, train_labels):
+
     if not os.path.exists('./src/descriptors/sift_des.npy'):
         print 'Computing SIFT features...'
         init=time.time()
@@ -51,6 +53,7 @@ def SIFT_features(SIFTdetector, train_images_filenames, train_labels):
         for i in range(len(train_images_filenames)):
             filename = train_images_filenames[i]
             print 'Reading image ' + filename
+
             ima = cv2.imread(filename)
             gray = cv2.cvtColor(ima, cv2.COLOR_BGR2GRAY)
             kpt, des = SIFTdetector.detectAndCompute(gray, None)
@@ -72,6 +75,7 @@ def SIFT_features(SIFTdetector, train_images_filenames, train_labels):
         np.save('./src/descriptors/sift_des', descriptors_matrix)
         np.save('./src/descriptors/sift_ids', ids_matrix)
         np.save('./src/descriptors/sift_labels', labels_matrix)
+
         end=time.time()
         print 'Done in '+str(end-init)+' secs.'
     else:
@@ -83,6 +87,7 @@ def SIFT_features(SIFTdetector, train_images_filenames, train_labels):
         end=time.time()
         print 'Done in '+str(end-init)+' secs.'
     return descriptors_matrix, labels_matrix, ids_matrix
+
 
 def SURF_features(SURFdetector, train_images_filenames, train_labels):
 
@@ -113,3 +118,4 @@ def descriptors_List2Array(descriptors):
         except:
             pass
     return D
+
